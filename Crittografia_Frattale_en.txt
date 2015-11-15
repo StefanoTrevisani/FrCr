@@ -1,0 +1,106 @@
+PROJECT CRYPTOGRAPHY FRACTAL
+
+Notes for the implementation of an encryption algorithm fractal
+single key " symmetrical " .
+
+- In first wisecrack we assemble there on the algorithm of the fractal of Mandelbrot
+considering that I am able reuse it departs some code to his/her time written to the purpose
+to visualize such together with video.
+
+- The idea of base is that to use as key of encryption the coordinates
+of the window that contains a portion of the whole Mandelbrot and the
+number of maximum iterations allowed to calculate the various points of the whole.
+
+- In substance the following numerical values real1,imm1,real2,imm2,iterazioni_max is given,
+and the coefficient of form drawn by the relationship (real2-real1)/(imm2-imm1).
+
+- The encryption to make use effective the mathematical bookstore qfloat or bignums that
+it also allows many digits of precision after the comma, and in phase of encryption
+you/he/she must also be selected an interval of the whole Mandelbrot that introduces one
+notable variability of values (in the case of a graphic visualization the zones
+with a greater granularity, variability of the value of the iterations).
+Then to make possible this needs to visualize to video the whole and to find
+the parameters visually for following attempts.
+
+-In Principle, the smaller the range that we use in the values of key
+and the greater the difficulty to decipher or decrypt the encrypted file especially if
+this last is sized cospique.
+
+- The difficulties principal for a possible hacker is that to decipher the file
+with an attack brute force for attempts more difficult for the actual computers
+home seen the notable massive structure of necessary calculations, and without
+counting the variability of the parameters to practically be passed endless.
+
+- A further difficulty resides in the fact that if someone tries to implement
+such algorithm of encryption or decryption but using a mathematics with precision
+different lock staying to use keys that make reference to very small zones
+or rather with numerous digits after the comma and choice with the criterions of
+which above the result of the operation of decrypting also knowing the key won't be possible.
+
+Let's put now us to the work...
+
+Example:
+- Gives a file pippo of 500 byteses to cipher
+- I determine the key of encryption with the graphic tool above quoted
+NUMERO_ITERAZIONI = 1200
+X_MINIMO=-3.9142157862540031985339297087507860355827593250082712954915982158885863568966009731070476718173267727E-1
+Y_MINIMO=-6.6114693189629083627164338008922440554399104567421810504009627209667837101255945600475349976932193385E-1
+X_MASSIMO=-3.9142157862540031985339297087390597342525248935949253379611681636939763067576677048678424064576120145E-1
+Y_MASSIMO=-6.6114693189629083627164338008828630143757229116115042843766186792110956700144479454561707854054475319E-1
+I draw the factor of form of the window = (X_MASSIMO-X_MINIMO)/(Y_MASSIMO-Y_MINIMO) = 1.25
+width x height = 500 byteses
+factor of form x height x height = 500 byteses
+1.25 x height x height = 500 bytes
+therefore height = (500/1.25)^0.5 = 20
+width = 20 x 1.25 = 25
+or also width = (500*1.25)^0.5 = 25
+in fact 25x20 = 500 c.v.ds.
+
+We try with a different for instance 1500000 byteses dimension of file
+height = (1500000/1.25)^0.5 = 1095.445115.... what we round off to 1095
+width = 1095.445115... x 1.25 = 1369.306394.... what we round off to 1369
+or also width = (1500000*1.25)^0.5 = 1369.306394.... what we round off to 1369
+1369 x 1095 = 1499055 <1500000
+to increase the larhezza of 1
+1370 x 1095 = 1500150> 1500000
+The 150 byteses in excess we neglect them.
+to increase the height of 1
+1369 x 1096 = 1500424> 1500000
+The 424 bytes in excess we neglect them.
+we choose the values that more they draw near to the dimension of the file
+or 1370 x 1095.
+
+I determine the range DELTA_X = (X_MASSIMO - X_MINIMO)/larghezza
+I determine the range DELTA_Y = (Y_MASSIMO - Y_MINIMO)/altezza
+
+with the function of Mandelbrot we draw for every byte the correspondent
+number of iterations and we use him/it for the encryption
+as before idea we could take such value in the example above quoted
+the iterations vary from a minimum of 0 to a maximum of 1200
+es: iterations word (16bit) = 625
+value to be ciphered byte (8bit) = 39
+let's save him/it in a word (16bit) 39 XOR 625 = 598
+N.B.: in such case The number of maximum iterations to be used has to be inclusive
+among 1 and 65535 more suitable to the purpose
+to notice that the monogrammed file will be long the double one in comparison to the file of origin.
+
+- To maintain the monogrammed file around of the same dimensions of the original file
+it needs to treat rather than one byte at a time one word at a time.
+
+- It first of all it is necessary to round off the length of the file to an equal number of bytes
+adding a zero at the end if it needs.
+
+es: iterations word (16bit) = 625
+value to be ciphered word (16bit) = 39
+let's save him/it in a word (16bit) 39 XOR 625 = 598
+N.B.: in such case The number of maximum iterations to be used has to be inclusive
+among 1 and 65535 more suitable to the purpose
+
+- To the monogrammed file in head an identifier of encryption must be hung with the original length of the file.
+
+Header:
+Signature "FRC",NULL (32bit)
+Length in bytes (32bit) max 2^32 = 4294967296 byteses = 4GB
+DATE.....
+
+Author Stefano Trevisani.

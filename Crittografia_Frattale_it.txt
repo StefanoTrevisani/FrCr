@@ -1,0 +1,106 @@
+PROGETTO CRITTOGRAFIA FRATTALE
+
+Note per la implementazione di un algoritmo di crittografia frattale
+a chiave singola "simmetrico".
+
+-In prima battuta ci concentriamo sull'algoritmo del frattale di Mandelbrot
+visto che posso riutilizzare parte del codice a suo tempo scritto allo scopo
+di visualizzare tale insieme a video.
+
+-L'idea di base è quella di adoperare come chiave di cifratura le coordinate
+della finestra che racchiude una porzione dell'insieme di Mandelbrot, ed il
+numero di iterazioni massime consentite per calcolare i vari punti dell'insieme.
+
+-In sostanza sono dati i seguenti valori numerici real1,imm1,real2,imm2,iterazioni_max,
+ed il coefficiente di forma ricavato dal rapporto (real2-real1)/(imm2-imm1).
+
+-Per rendere efficace la cifratura utilizzo la libreria matematica qfloat o bignums che
+permettono molte cifre di precisione dopo la virgola, ed in fase di cifratura
+va anche selezionato un intervallo dell'insieme di Mandelbrot che presenti una
+notevole variabilità di valori (nel caso di una visualizzazione grafica le zone
+con una maggiore granulosità, variabilità del valore delle iterazioni).
+Quindi per rendere possibile ciò bisogna visualizzare a video l'insieme e trovare
+i parametri visivamente per tentativi successivi.
+
+-In linea di massima più piccolo è l'intervallo che utilizziamo nei valori della chiave
+ed maggiore sarà la difficoltà di decifrare o decriptare il file cifrato sopratutto se
+questo ultimo è di dimensioni cospique.
+
+-Le difficoltà principale per un eventuale hacker è quella di decifrare il file
+con un attacco brute force per tentativi improponibile per gli attuali computer
+casalinghi visto la notevole mole di calcoli necessari, e senza contare la variabilità
+dei parametri da passare praticamente infinita.
+
+-Una ulteriore difficoltà risiede nel fatto che se qualcuno tenta di implementare
+tale algoritmo di cifratura o decifratura ma utilizzando una matematica con precisione
+diversa fermo restando di utilizzare chiavi che fanno riferimento a zone molto piccole
+ossia con numerose cifre dopo la virgola e scelta con i criteri di cui sopra il risultato
+della operazione di decrittaggio pur conoscendo la chiave non sarà possibile.
+
+Adesso mettiamoci all'opera...
+
+Esempio:
+-Dato un file pippo di 500 bytes da cifrare
+-Determino la chiave di cifratura con il tool grafico sopra citato
+NUMERO_ITERAZIONI= 1200
+X_MINIMO=-3.9142157862540031985339297087507860355827593250082712954915982158885863568966009731070476718173267727E-1
+Y_MINIMO=-6.6114693189629083627164338008922440554399104567421810504009627209667837101255945600475349976932193385E-1
+X_MASSIMO=-3.9142157862540031985339297087390597342525248935949253379611681636939763067576677048678424064576120145E-1
+Y_MASSIMO=-6.6114693189629083627164338008828630143757229116115042843766186792110956700144479454561707854054475319E-1
+ricavo il fattore di forma della finestra = (X_MASSIMO-X_MINIMO)/(Y_MASSIMO-Y_MINIMO) = 1.25
+larghezza x altezza = 500 bytes
+fattore di forma x altezza x altezza = 500 bytes
+1.25 x altezza x altezza = 500 bytes
+perciò altezza = (500/1.25)^0.5 = 20
+larghezza = 20 x 1.25 = 25
+ovvero anche larghezza = (500*1.25)^0.5 = 25
+infatti 25x20 = 500 c.v.d.
+
+Proviamo con una dimensione di file diversa ad esempio 1500000 bytes
+altezza = (1500000/1.25)^0.5 = 1095.445115.... che arrotondiamo a 1095
+larghezza = 1095.445115... x 1.25 = 1369.306394.... che arrotondiamo a 1369
+ovvero anche larghezza = (1500000*1.25)^0.5 = 1369.306394.... che arrotondiamo a 1369
+1369 x 1095 = 1499055 < 1500000
+incrementare la larhezza di 1
+1370 x 1095 = 1500150 > 1500000
+I 150 bytes in eccesso li trascuriamo.
+incrementare la altezza di 1
+1369 x 1096 = 1500424 > 1500000
+I 424 bytes in eccesso li trascuriamo.
+scegliamo i valori che più si avvicinano alla dimensione del file
+ovvero 1370 x 1095.
+
+determino il range DELTA_X = (X_MASSIMO - X_MINIMO)/larghezza
+determino il range DELTA_Y = (Y_MASSIMO - Y_MINIMO)/altezza
+
+con la funzione di Mandelbrot ricaviamo per ogni byte il corrispondente
+numero di iterazioni e lo utilizziamo per la cifratura
+come prima idea potremmo prendere tale valore nell'esempio sopra citato
+le iterazioni variano da un minimo di 0 ad un massimo di 1200
+es: iterazioni word (16bit) = 625
+valore da cifrare byte (8bit) = 39
+lo salviamo in una word (16bit) 39 XOR 625 = 598
+N.B.: in tal caso Il numero di iterazioni massime da utilizzare deve essere compreso
+tra 1 e 65535 più che adeguati allo scopo
+notare che il file cifrato sarà lungo il doppio rispetto al file di origine.
+
+-Per mantenere il file cifrato circa delle stesse dimensioni del file originale
+bisogna trattare anzichè un byte alla volta una word alla volta.
+
+-Occorre innanzitutto arrotondare la lunghezza del file ad un numero pari di bytes
+aggiungendo uno zero alla fine se occorre.
+
+es: iterazioni word (16bit) = 625
+valore da cifrare word (16bit) = 39
+lo salviamo in una word (16bit) 39 XOR 625 = 598
+N.B.: in tal caso Il numero di iterazioni massime da utilizzare deve essere compreso
+tra 1 e 65535 più che adeguati allo scopo
+
+-Al file cifrato in testa va appeso un identificatore di cifratura con la lunghezza originale del file.
+
+Header:
+Signature "FRC",NULL (32bit)
+Length in bytes (32bit) max 2^32 = 4294967296 bytes = 4GB
+DATA.....
+
+Autore Stefano Trevisani.
